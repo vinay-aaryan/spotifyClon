@@ -77,19 +77,25 @@
 
 .spotify-playlists {
   padding: 20px;
+
+
+  /* padding-bottom: 30px; */
 }
 .spotify-playlists h1 {
   font-size: 25px;
   padding: 20px;
   /* padding-bottom: 20px ; */
 }
-.card-container {
+.cardcontainer {
   display: flex;
-  gap: 10px;
+  /* justify-content: space-around; */
+  gap: 10px 30px;
   margin: 25px;
+  margin-top: 10px;
   flex-wrap: wrap;
-  max-height: 65vh;
+  max-height: 62vh;
   overflow-y: auto;
+  padding: 10px;
 
 }
 .card {
@@ -98,6 +104,7 @@
   /* height: 260px; */
   background-color: rgba(55, 54, 54, 0.427);
   border-radius: 15px;
+  transition: all .2s ease-in-out ;
 }
 .card img {
   width: 90%;
@@ -118,6 +125,12 @@
 .card > * {
   padding: 10px;
 }
+.card:hover{
+  background-color: black;
+  .play{
+    opacity: 1;
+  }
+}
 
 .play {
   width: 20px;
@@ -131,9 +144,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  /* opacity: 1; */
-  transition: all 1s ease-out;
+  opacity: 0;
+  transition: all .2s ease-out;
+  cursor: pointer;
 }
+
+
 .nav {
   margin-left: 20px;
 }
@@ -192,12 +208,14 @@
   bottom: 30px;
   width: 70.8vw;
   margin: 0px 12px;
+  right: 0px;
   min-height: 40px;
   height: 65px;
   padding: 10px;
   /* overflow-y: hidden; */
   background-color: #0b2a2583;
   border-radius: 10px;
+  z-index: 1;
 }
 
 .songButtons {
@@ -233,9 +251,9 @@
   cursor: pointer;
   padding: 12px 2px;
   padding: 13px;
-  border: 2px solid;
+  /* border: 2px solid; */
   margin: 12px 0;
-  border-radius: 5px;
+  border-radius: 10px;
 }
 
 .playnow {
@@ -392,7 +410,7 @@
 
 
 
-@media (max-width: 1000px) {
+@media (max-width: 1200px) {
   .left {
     position: absolute;
     width: 373px;
@@ -444,9 +462,7 @@
   .nav{
     margin-left: 3px ;
   }
-  .btn{
 
-  }
   .close{
     display: block;
   }
@@ -456,14 +472,14 @@
     justify-content: space-between;
     align-items: center;
   }
-  .card-container{
+  .cardcontainer{
     /* display: contents; */
     margin: 25px 0px 76px 0px;
     justify-content: center;
     
   }
   .card{
-    width: 80vw;
+    width: 45vw;
   }
   .play{
     top: 225px;
@@ -487,5 +503,12 @@
       justify-content: space-between;
       align-items: center;
       gap: 80px;
+  }
+}
+
+@media (max-width: 500px) {
+
+.card{
+    width: 80vw;
   }
 }
