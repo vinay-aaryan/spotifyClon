@@ -1,12 +1,13 @@
 console.log("Hey now it's begin"); 
 
-let songs;
+let songs = [];
 let currFolder; 
-let currentSong = new Audio();
+let currentSongIndex = 0;
+const currentSong = new Audio();
 
-const play = document.getElementById("play"); // or use querySelector
-const next = document.getElementById("next"); // or querySelector
-const previous = document.getElementById("previous");
+const play = document.querySelector("#play"); // or use querySelector
+const next = document.querySelector("#next"); // or querySelector
+const previous = document.querySelector("#previous");
 const seekbar = document.querySelector('.seekbar');
 const circle = document.querySelector('.circle');
 
@@ -18,69 +19,79 @@ function formatTime(seconds) {
 }
 
 async function getSongs(folder) {
-    currFolder = folder
-        // Fetch the songs directory
-        const response = await fetch(`http://127.0.0.1:3000/${folder}/`);
-        const html = await response.text();
-        
-        // Create a temporary div to parse the HTML
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        
-        // Get all links
-        const links = doc.getElementsByTagName("a");
-        songs = [];
-        
-        // Filter and store MP3 files
-        for (let link of links) {
-            const href = link.getAttribute("href");
-            if (href && href.endsWith(".mp3")) {
-                // console.log("Found href:", href);  // Debug
-        
-                // Use only the filename (safest)
-                const filename = href.split("/").pop();  // gets just the last part
-                songs.push(`http://127.0.0.1:3000/${folder}/` + filename);
-            }
+    currFolder = folder;
+    // Fetch the songs directory
+    const response = await fetch(`http://127.0.0.1:3000/${folder}/`);
+    const html = await response.text();
+    
+    // Create a temporary div to parse the HTML
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    
+    // Get all links
+    const links = doc.getElementsByTagName("a");
+    songs = [];
+    
+    // Filter and store MP3 files
+    for (let link of links) {
+        const href = link.getAttribute("href");
+        if (href && href.endsWith(".mp3")) {
+            const filename = href.split("/").pop();
+            const songPath = `http://127.0.0.1:3000/${folder}/${filename}`;
+            songs.push(songPath);
         }
+    }
 
-          // displaying songs in the playlist
-          let songUL = document.querySelector('.songList').getElementsByTagName('ul')[0]
+    // displaying songs in the playlist
+    let songUL = document.querySelector('.songList').getElementsByTagName('ul')[0];
+    songUL.innerHTML = "";
 
-          songUL.innerHTML = songUL.innerHTML = ""
-          for (const song of songs) {
-              songUL.innerHTML = songUL.innerHTML + `<li>
-              <img class="invert playicon" src="music.svg" alt="">
-              <div class="info">
-                  <div class="songName" >${song.replaceAll("http://127.0.0.1:3000/songs/", " "  )}</div>
-                  <div class="artisName" >${song.replaceAll("http://127.0.0.1:3000/songs/", " "  )}</div>
-              </div>
-              <div class="playnow">
-                  <span>Play Now</span>
-                  <img class="invert" src="play.svg" alt="">
-              </div>
-          </li>`;
-              
-              // <li> ${song.replaceAll("http://127.0.0.1:3000/songs/", " "  )} </li>
-          }
-      
-          // creating ssekbar
-// attach a event listerner to each song
-              Array.from(document.querySelector('.songList').getElementsByTagName('li')).forEach(e => {
-                      e.addEventListener("click", element =>{
-                          // console.log(e.querySelector('.info').firstElementChild.innerHTML)
-                          playMusic(e.querySelector('.info').firstElementChild.innerHTML.trim())
+    for (const song of songs) {
+        const songName = song.split('/').pop().replace('.mp3', '');
+        songUL.innerHTML = songUL.innerHTML + `
+            <li>
+                <img class="invert playicon" src="music.svg" alt="">
+                <div class="info">
+                    <div class="songName">${songName}</div>
+                    <div class="artisName">${songName}</div>
+                </div>
+                <div class="playnow">
+                    <span>Play Now</span>
+                    <img class="invert" src="play.svg" alt="">
+                </div>
+            </li>`;
+    }
 
-                      })
-                      })
-        // console.log("Found songs:", songs);
-        return songs;
+    // attach event listener to each song
+    Array.from(document.querySelector('.songList').getElementsByTagName('li')).forEach(e => {
+        e.addEventListener("click", element => {
+            const songIndex = Array.from(songUL.children).indexOf(e);
+            if (songIndex !== -1 && songs[songIndex]) {
+                currentSongIndex = songIndex;
+                playMusic(songs[songIndex]);
+            }
+        });
+    });
+
+    console.log("Found songs:", songs);
 }
 
 
+function updateSongTitle(title) {
+    const songTitle = document.getElementById("songTitle");
 
+    songTitle.textContent = decodeURI(title.trim());
+    songTitle.classList.remove("scroll");
 
+    // Delay ensures the browser recalculates width
+    setTimeout(() => {
+        const wrapper = document.querySelector('.songinfo-wrapper');
 
-
+        if (songTitle.scrollWidth > wrapper.offsetWidth) {
+            songTitle.classList.add("scroll");
+        }
+    }, 100); // slight delay to allow DOM update
+}
 
 
 function formatTime(seconds) {
@@ -102,18 +113,26 @@ const playMusic = (track, pause = false) => {
     } else if (track.startsWith("/songs/")) {
         finalSrc = track;
     } else if (track.includes("/")) {
-        finalSrc = `/songs/${track}`;
+        // If it's a relative path, make sure it starts with /songs/
+        finalSrc = track.startsWith("/") ? track : `/songs/${track}`;
     } else {
+        // If it's just a filename, use the current folder
         finalSrc = `/songs/${currFolder}/${track}`;
     }
+
+    // Remove any duplicate 'songs' in the path
+    finalSrc = finalSrc.replace(/\/songs\/songs\//, '/songs/');
+
+    // Ensure the path is properly encoded
+    finalSrc = encodeURI(finalSrc);
 
     // Logging for debug
     console.log("🎵 Playing:", finalSrc);
 
     currentSong.src = finalSrc;
 
-    const fileName = decodeURI(finalSrc.split("/").pop().replace(".mp3", ""));
-    document.querySelector(".songinfo").innerHTML = fileName;
+    const fileName = decodeURIComponent(finalSrc.split("/").pop().replace(".mp3", ""));
+    updateSongTitle(fileName);
     document.querySelector(".songtime").innerHTML = "00:00 / 00:00";
 
     currentSong.addEventListener("loadedmetadata", () => {
@@ -125,7 +144,9 @@ const playMusic = (track, pause = false) => {
         currentSong.play().catch(e => {
             console.error("Audio play error:", e);
         });
-        play.src = "pause.svg";
+        if (play) {
+            play.src = "pause.svg";
+        }
     }
 };
 
@@ -188,9 +209,11 @@ async function displayAlbum() {
     Array.from(document.querySelectorAll(".card")).forEach(card => {
         card.addEventListener('click', async (event) => {
             const folder = card.dataset.folder;
-            songs = await getSongs(`songs/${folder}`);
-            if (songs.length > 0) {
+            await getSongs(`songs/${folder}`);
+            if (songs && songs.length > 0) {
                 currentSongIndex = 0;
+                // Store the current song path for next/previous functionality
+                currentSong.src = songs[currentSongIndex];
                 playMusic(songs[currentSongIndex]);
             }
         });
@@ -201,13 +224,13 @@ async function displayAlbum() {
 
 async function main() {
     
-    songs = await getSongs("songs");
+        await getSongs("songs");
     // console.log("Songs array:", songs);
-   
-        playMusic(songs[0], true)
-     
-         // display Album calling 
-         displayAlbum()
+
+    playMusic(songs[0], true)
+    
+    // display Album calling 
+    displayAlbum()
    
           
             // attach event lister to play next and previous song
@@ -300,20 +323,36 @@ document.querySelector('.close').addEventListener('click', () =>{
 //   })
   
   previous.addEventListener('click', () => {
-    // console.log("Next clicked");
+    console.log("previous clicked");
 
-    // Get just the filename from the current song
-    const currentFilename = decodeURIComponent(currentSong.src.split('/').pop());
+    if (!songs || songs.length === 0) {
+        console.warn("No songs in the playlist");
+        return;
+    }
 
-    // Find the song index using only filename match
-    let index = songs.findIndex(song => song.endsWith(currentFilename));
+    // Find current song index
+    const currentSrc = decodeURIComponent(currentSong.src);
+    let index = songs.findIndex(song => decodeURIComponent(song) === currentSrc);
+    
+    if (index === -1) {
+        // Try to find by filename if full path match fails
+        const currentFilename = currentSrc.split('/').pop();
+        index = songs.findIndex(song => decodeURIComponent(song).endsWith(currentFilename));
+    }
 
-    // console.log("Current filename:", currentFilename);
-    // console.log("Current index:", index);
+    console.log("Current index:", index);
+    console.log("Songs:", songs);
+    console.log("Current src:", currentSrc);
 
     if (index !== -1) {
-        let previousindex = (index - 1 + songs.length) % songs.length; // wrap around
+        // Loop to the end if at the beginning
+        let previousindex = (index - 1 + songs.length) % songs.length;
+        currentSongIndex = previousindex;
         playMusic(songs[previousindex]);
+    } else if (songs.length > 0) {
+        // If we can't find the current song, play the last song
+        currentSongIndex = songs.length - 1;
+        playMusic(songs[songs.length - 1]);
     } else {
         console.warn("Current song not found in songs array.");
     }
@@ -321,41 +360,43 @@ document.querySelector('.close').addEventListener('click', () =>{
 
 
   next.addEventListener('click', () => {
-    // console.log("Next clicked");
+    console.log("Next clicked");
 
-    // Get just the filename from the current song
-    const currentFilename = decodeURIComponent(currentSong.src.split('/').pop());
+    if (!songs || songs.length === 0) {
+        console.warn("No songs in the playlist");
+        return;
+    }
 
-    // Find the song index using only filename match
-    let index = songs.findIndex(song => song.endsWith(currentFilename));
+    // Find current song index
+    const currentSrc = decodeURIComponent(currentSong.src);
+    let index = songs.findIndex(song => decodeURIComponent(song) === currentSrc);
+    
+    if (index === -1) {
+        // Try to find by filename if full path match fails
+        const currentFilename = currentSrc.split('/').pop();
+        index = songs.findIndex(song => decodeURIComponent(song).endsWith(currentFilename));
+    }
 
-    // console.log("Current filename:", currentFilename);
-    // console.log("Current index:", index);
+    console.log("Current index:", index);
+    console.log("Songs:", songs);
+    console.log("Current src:", currentSrc);
 
     if (index !== -1) {
-        let nextIndex = (index + 1) % songs.length; // wrap around
+        // Loop to the beginning if at the end
+        let nextIndex = (index + 1) % songs.length;
+        currentSongIndex = nextIndex;
         playMusic(songs[nextIndex]);
+    } else if (songs.length > 0) {
+        // If we can't find the current song, play the first song
+        currentSongIndex = 0;
+        playMusic(songs[0]);
     } else {
         console.warn("Current song not found in songs array.");
     }
 });
 
 
-function updateSongTitle(title) {
-    const songTitle = document.getElementById("songTitle");
-
-    songTitle.textContent = decodeURI(title.trim());
-    songTitle.classList.remove("scroll");
-
-    // Delay ensures the browser recalculates width
-    setTimeout(() => {
-        const wrapper = document.querySelector('.songinfo-wrapper');
-
-        if (songTitle.scrollWidth > wrapper.offsetWidth) {
-            songTitle.classList.add("scroll");
-        }
-    }, 100); // slight delay to allow DOM update
-}
+// yaha update song titile thaa
 
 
  // Add an event to volume
@@ -406,3 +447,37 @@ volumeSlider.addEventListener('input', (e) => {
 } // main funcion parameter 
 
 main()
+
+// Add play/pause button functionality
+play.addEventListener('click', () => {
+    if (currentSong.paused) {
+        currentSong.play();
+        play.src = "pause.svg";
+    } else {
+        currentSong.pause();
+        play.src = "play.svg";
+    }
+});
+
+// Update play button state when song ends
+currentSong.addEventListener('ended', () => {
+    if (songs && songs.length > 0) {
+        currentSongIndex = (currentSongIndex + 1) % songs.length;
+        playMusic(songs[currentSongIndex]);
+    }
+    play.src = "play.svg";
+});
+
+// Update play button state when song starts playing
+currentSong.addEventListener('play', () => {
+    if (play) {
+        play.src = "pause.svg";
+    }
+});
+
+// Update play button state when song is paused
+currentSong.addEventListener('pause', () => {
+    if (play) {
+        play.src = "play.svg";
+    }
+});
