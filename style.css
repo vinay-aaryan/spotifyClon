@@ -404,11 +404,88 @@
   display: none;
 }
 
+.search {
+    padding: 5px;
+    margin-bottom: -10px;
+}
 
+.search input {
+    width: 95%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background: #282828;
+    color: white;
+    font-size: 14px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
 
+.search input:focus {
+    outline: none;
+    background: #404040;
+    box-shadow: 0 0 0 2px rgba(29, 185, 84, 0.2);
+}
 
+.search input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
 
+/* Update the song list styles to work with search */
+.songList {
+    height: calc(100vh - 200px); /* Adjust based on your layout */
+    overflow-y: auto;
+    padding: 0 10px;
+}
 
+.songList ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.songList li {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    margin-bottom: 5px;
+}
+
+.songList li:hover {
+    background: #404040;
+}
+
+.songList li.current-song {
+    background: #404040;
+    position: relative;
+}
+
+.songList li.current-song::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 4px;
+    background: #1DB954;
+    border-radius: 2px;
+}
+
+.songList li.current-song .playicon {
+    filter: invert(1) sepia(1) saturate(3000%) hue-rotate(90deg);
+}
+
+/* Add smooth transitions for the play/pause icons */
+.playicon, .playnow img {
+    transition: transform 0.3s ease;
+}
+
+.songList li:hover .playicon,
+.songList li:hover .playnow img {
+    transform: scale(1.1);
+}
 
 @media (max-width: 1200px) {
   .left {
@@ -504,4 +581,30 @@
       align-items: center;
       gap: 80px;
   }
+}
+
+
+
+@media (max-width: 450px) {
+.play {
+  top: 210px;
+  right: 30px;
+  height: 35px;
+  width: 35px;
+}
+  .card{
+    width: 75vw;
+  }
+
+
+.playbar{
+  height: 135px;
+  margin-left: 0px;
+  margin-left: 10px;
+  right: -7px;
+}
+.cardcontainer{
+  max-height: 45vh;
+}
+
 }

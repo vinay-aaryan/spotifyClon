@@ -50,14 +50,14 @@ async function getSongs(folder) {
         const songName = song.split('/').pop().replace('.mp3', '');
         songUL.innerHTML = songUL.innerHTML + `
             <li>
-                <img class="invert playicon" src="music.svg" alt="">
+                <img class="invert playicon" src="/assets/music.svg" alt="">
                 <div class="info">
                     <div class="songName">${songName}</div>
                     <div class="artisName">${songName}</div>
                 </div>
                 <div class="playnow">
                     <span>Play Now</span>
-                    <img class="invert" src="play.svg" alt="">
+                    <img class="invert" src="/assets/play.svg" alt="">
                 </div>
             </li>`;
     }
@@ -69,11 +69,12 @@ async function getSongs(folder) {
             if (songIndex !== -1 && songs[songIndex]) {
                 currentSongIndex = songIndex;
                 playMusic(songs[songIndex]);
+                updateCurrentSongHighlight();
             }
         });
     });
 
-    console.log("Found songs:", songs);
+    // console.log("Found songs:", songs);
 }
 
 
@@ -127,7 +128,7 @@ const playMusic = (track, pause = false) => {
     finalSrc = encodeURI(finalSrc);
 
     // Logging for debug
-    console.log("🎵 Playing:", finalSrc);
+    // console.log("🎵 Playing:", finalSrc);
 
     currentSong.src = finalSrc;
 
@@ -145,9 +146,12 @@ const playMusic = (track, pause = false) => {
             console.error("Audio play error:", e);
         });
         if (play) {
-            play.src = "pause.svg";
+            play.src = "/assets/pause.svg";
         }
     }
+
+    // Update the current song highlight
+    updateCurrentSongHighlight();
 };
 
 
@@ -162,7 +166,7 @@ async function displayAlbum() {
     let anchors = div.querySelectorAll("a");
     let cardcontainer = document.querySelector('.cardcontainer')
     // let anchors = document.querySelectorAll('a')
-    console.log("Album is showing!!!!", anchors);
+    // console.log("Album is showing!!!!", anchors);
    let array = Array.from(anchors)
         for (let index = 0; index < array.length; index++) {
             const e = array[index];
@@ -179,7 +183,7 @@ async function displayAlbum() {
             try {
                 let res = await fetch(`http://127.0.0.1:3000/songs/${folder}/info.json`);
                 let metadata = await res.json();
-                console.log(metadata);
+                // console.log(metadata);
             
         
     
@@ -323,7 +327,7 @@ document.querySelector('.close').addEventListener('click', () =>{
 //   })
   
   previous.addEventListener('click', () => {
-    console.log("previous clicked");
+    // console.log("previous clicked");
 
     if (!songs || songs.length === 0) {
         console.warn("No songs in the playlist");
@@ -340,15 +344,16 @@ document.querySelector('.close').addEventListener('click', () =>{
         index = songs.findIndex(song => decodeURIComponent(song).endsWith(currentFilename));
     }
 
-    console.log("Current index:", index);
-    console.log("Songs:", songs);
-    console.log("Current src:", currentSrc);
+    // console.log("Current index:", index);
+    // console.log("Songs:", songs);
+    // console.log("Current src:", currentSrc);
 
     if (index !== -1) {
         // Loop to the end if at the beginning
         let previousindex = (index - 1 + songs.length) % songs.length;
         currentSongIndex = previousindex;
         playMusic(songs[previousindex]);
+        updateCurrentSongHighlight();
     } else if (songs.length > 0) {
         // If we can't find the current song, play the last song
         currentSongIndex = songs.length - 1;
@@ -360,7 +365,7 @@ document.querySelector('.close').addEventListener('click', () =>{
 
 
   next.addEventListener('click', () => {
-    console.log("Next clicked");
+    // console.log("Next clicked");
 
     if (!songs || songs.length === 0) {
         console.warn("No songs in the playlist");
@@ -377,15 +382,16 @@ document.querySelector('.close').addEventListener('click', () =>{
         index = songs.findIndex(song => decodeURIComponent(song).endsWith(currentFilename));
     }
 
-    console.log("Current index:", index);
-    console.log("Songs:", songs);
-    console.log("Current src:", currentSrc);
+    // console.log("Current index:", index);
+    // console.log("Songs:", songs);
+    // console.log("Current src:", currentSrc);
 
     if (index !== -1) {
         // Loop to the beginning if at the end
         let nextIndex = (index + 1) % songs.length;
         currentSongIndex = nextIndex;
         playMusic(songs[nextIndex]);
+        updateCurrentSongHighlight();
     } else if (songs.length > 0) {
         // If we can't find the current song, play the first song
         currentSongIndex = 0;
@@ -415,11 +421,11 @@ volumeup.addEventListener('click', () => {
     currentSong.muted = !currentSong.muted;
 
     if (currentSong.muted || currentSong.volume === 0) {
-        volumeup.src = "mute.svg";
+        volumeup.src = "/assets/mute.svg";
     } else if (currentSong.volume <= 0.5) {
-        volumeup.src = "halfvol.svg";
+        volumeup.src = "/assets/halfvol.svg";
     } else {
-        volumeup.src = "volume.svg";
+        volumeup.src = "/assets/volume.svg";
     }
 });
 
@@ -431,14 +437,14 @@ volumeSlider.addEventListener('input', (e) => {
 
     if (volume === 0) {
         currentSong.muted = true;
-        volumeup.src = "mute.svg";
+        volumeup.src = "/assets/mute.svg";
     } else {
         currentSong.muted = false;
 
         if (volume <= 0.5) {
-            volumeup.src = "halfvol.svg";
+            volumeup.src = "/assets/halfvol.svg";
         } else {
-            volumeup.src = "volume.svg";
+            volumeup.src = "/assets/volume.svg";
         }
     }
 });
@@ -452,10 +458,10 @@ main()
 play.addEventListener('click', () => {
     if (currentSong.paused) {
         currentSong.play();
-        play.src = "pause.svg";
+        play.src = "/assets/pause.svg";
     } else {
         currentSong.pause();
-        play.src = "play.svg";
+        play.src = "/assets/play.svg";
     }
 });
 
@@ -465,19 +471,61 @@ currentSong.addEventListener('ended', () => {
         currentSongIndex = (currentSongIndex + 1) % songs.length;
         playMusic(songs[currentSongIndex]);
     }
-    play.src = "play.svg";
+    play.src = "/assets/play.svg";
 });
 
 // Update play button state when song starts playing
 currentSong.addEventListener('play', () => {
     if (play) {
-        play.src = "pause.svg";
+        play.src = "/assets/pause.svg";
     }
 });
 
 // Update play button state when song is paused
 currentSong.addEventListener('pause', () => {
     if (play) {
-        play.src = "play.svg";
+        play.src = "/assets/play.svg";
     }
 });
+
+// Add search functionality
+const searchInput = document.querySelector('.search input');
+const songList = document.querySelector('.songList ul');
+
+if (searchInput && songList) {
+    searchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const songs = Array.from(songList.children);
+        
+        songs.forEach(song => {
+            const songName = song.querySelector('.songName').textContent.toLowerCase();
+            if (songName.includes(searchTerm)) {
+                song.style.display = 'flex';
+            } else {
+                song.style.display = 'none';
+            }
+        });
+    });
+}
+
+// Add current song highlighting
+function updateCurrentSongHighlight() {
+    // Remove highlight from all songs
+    const allSongs = document.querySelectorAll('.songList li');
+    allSongs.forEach(song => {
+        song.classList.remove('current-song');
+    });
+
+    // Add highlight to current song
+    if (currentSong.src) {
+        const currentSrc = decodeURIComponent(currentSong.src);
+        const currentSongElement = Array.from(allSongs).find(song => {
+            const songName = song.querySelector('.songName').textContent;
+            return currentSrc.includes(songName);
+        });
+        
+        if (currentSongElement) {
+            currentSongElement.classList.add('current-song');
+        }
+    }
+}
